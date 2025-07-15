@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  elt-pipeline:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - sqlite_data:/app/elt_pipeline_data
+      - ../Data:/app/Data
+    environment:
+      - DATA_PATH=Data/customer_churn_data.csv
+      - DB_URL=sqlite:////app/elt_pipeline_data/elt_pipeline.db
+    depends_on:
+      - metabase
+    restart: on-failure
+
+  metabase:
+    image: metabase/metabase:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - sqlite_data:/app/elt_pipeline_data
+    environment:
+      - MB_DB_FILE=/app/elt_pipeline_data/elt_pipeline.db
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:
